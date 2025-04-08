@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>Famous Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+
+        input, button {
+            padding: 12px;
+            font-size: 16px;
+            width: 300px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            width: 150px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Chat med en kendt/historisk person</h1>
+<p>Indtast et navn (f.eks. Albert Einstein, Nicki Minaj):</p>
+
+<input type="text" id="personInput" placeholder="Skriv navn her..."><br>
+<button onclick="startChat()">Start samtale</button>
+
+<script>
+    async function startChat() {
+        const name = document.getElementById("personInput").value;
+        if (!name.trim()) return;
+
+        const res = await fetch("/api/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ figureName: name })
+        });
+
+        const session = await res.json();
+        window.location.href = `/chat.html?sessionId=${session.id}`;
+    }
+</script>
+
+</body>
+</html>

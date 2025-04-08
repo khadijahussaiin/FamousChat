@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        #chatBox {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+
+        .message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .user {
+            text-align: right;
+            background-color: #d0e8ff;
+        }
+
+        .assistant {
+            text-align: left;
+            background-color: #e3ffd0;
+        }
+
+        input {
+            width: 80%;
+            padding: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Chat med: <span id="figureName">...</span></h2>
+<div id="chatBox"></div>
+
+<input id="messageInput" type="text" placeholder="Skriv en besked...">
+<button onclick="sendMessage()">Send</button>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('sessionId');
+
+    let figureName = "";
+
+    async function loadSession() {
+        const res = await fetch(`/api/session/${sessionId}`);
+        const session = await res.json();
+
+        figureName = session.figureName;
+        document.getElementById("figureName").innerText = figureName;
+
+        session.messages.forEach(msg => {
+            addMessage(msg.role, msg.content);
+        });
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById("messageInput");
+        const text = input.value;
+        if (!text.trim()) return;
+
+        addMessage("user", text);
+        input.value = "";
+
+        const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId: sessionId, message: text })
+        });
+
+        const reply = await res.text();
+        addMessage("assistant", reply);
+    }
+
+    function addMessage(role, content) {
+        const chatBox = document.getElementById("chatBox");
+        const div = document.createElement("div");
+        div.className = "message " + role;
+        div.textContent = (role === "user" ? "Du" : figureName) + ": " + content;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    loadSession();
+</script>
+
+</body>
+</html>
